@@ -2,6 +2,7 @@
 #include <EEPROMManager/EEPROM_MANAGER_exports.h>
 #include <TelemetrySender/TELEMETRY_SENDER_exports.h>
 #include <PID/PID_exports.h>
+#include <Receiver/RECEIVER_exports.h>
 #include <RF24.h>
 #include <Utils/UTILS.h>
 
@@ -11,7 +12,7 @@ int dataTransmitted;
 
 CNC_HANDLER_t CNC_HANDLER__cnc_g;
 
-void initialize_cncs()
+void CNC_HANDLER__init()
 {
   myRadio.begin();
   myRadio.setPALevel(RF24_PA_MAX);
@@ -26,11 +27,16 @@ void initialize_cncs()
   delay(1000);//
 }
 
-void handle_cnc()
+void CNC_HANDLER__handle_cnc()
 {
   if (myRadio.available()) {
     myRadio.read(&CNC_HANDLER__cnc_g, sizeof(CNC_HANDLER__cnc_g));
-    CNC_HANDLER__handle_cnc();
+    #define HANDLER(__cnc_id, __handler) \
+      if (__cnc_id == CNC_HANDLER__cnc_g.id) {\
+        __handler(); \
+      }
+    #include <CNCHandler/CNC_HANDLER_handlers.hx>
+    #undef HANDLER
   }
 }
 
@@ -77,12 +83,18 @@ void cnc_handler__set_pid()
   PID__update_field(CNC_HANDLER__cnc_g.payload.pid.pid_field_id,
                     CNC_HANDLER__cnc_g.payload.pid.value);
 }
-void CNC_HANDLER__handle_cnc()
+
+void cnc_handler__set_receiver_state()
 {
-    #define HANDLER(__cnc_id, __handler) \
-      if (__cnc_id == CNC_HANDLER__cnc_g.id) {\
-        __handler(); \
-      }
-    #include <CNCHandler/CNC_HANDLER_handlers.hx>
-    #undef HANDLER
+  RECEIVER__update(&CNC_HANDLER__cnc_g.payload.receiver);
+}
+
+void cnc_handler__arm()
+{
+
+}
+
+void cnc_handler__disarm()
+{
+
 }

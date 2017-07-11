@@ -21,6 +21,17 @@ typedef struct {
   double value;
 } PID__set_cnc_t;
 
+typedef struct {
+  double x;
+  double y;
+  double z;
+} PID__vector_t;
+
+extern PID__vector_t PID__powers_g;
+extern PID__vector_t PID__balanced_angles_g;
+
 void PID__update_field(PID__field_id_t field_id, double value);
+void PID__compute(void);
+void PID__init(void);
 
 #endif /* PID_EXPORTS_H */
